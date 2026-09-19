@@ -166,11 +166,29 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                           ],
                         ),
                       ),
-                      if (widget.settings.earthquake) ...[
-                        _QuakeGauge(
-                          progress: _controller.quakeGauge,
-                          shaking: _controller.phase == PlayPhase.quaking,
-                          pulse: _controller.quakeT,
+                      if (widget.settings.earthquake ||
+                          widget.settings.sandworm) ...[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (widget.settings.earthquake)
+                              _EventGauge(
+                                label: 'QUAKE',
+                                progress: _controller.quakeGauge,
+                                active: _controller.phase == PlayPhase.quaking,
+                                pulse: _controller.quakeT,
+                              ),
+                            if (widget.settings.earthquake &&
+                                widget.settings.sandworm)
+                              const SizedBox(height: 8),
+                            if (widget.settings.sandworm)
+                              _EventGauge(
+                                label: 'WORM',
+                                progress: _controller.wormGauge,
+                                active: _controller.phase == PlayPhase.worming,
+                                pulse: _controller.wormT,
+                              ),
+                          ],
                         ),
                         const SizedBox(width: 10),
                       ],
@@ -289,19 +307,25 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
   }
 }
 
-class _QuakeGauge extends StatelessWidget {
-  const _QuakeGauge({
+class _EventGauge extends StatelessWidget {
+  const _EventGauge({
+    required this.label,
     required this.progress,
-    required this.shaking,
+    required this.active,
     required this.pulse,
   });
 
+  static const barWidth = 120.0;
+  static const barHeight = 18.0;
+  static const labelWidth = 52.0;
+
+  final String label;
   final double progress;
-  final bool shaking;
+  final bool active;
   final double pulse;
 
   Color get _fillColor {
-    if (shaking) {
+    if (active) {
       final flash = (sin(pulse * 24) + 1) / 2;
       return Color.lerp(const Color(0xFF8E0000), const Color(0xFFFF1744), flash)!;
     }
@@ -315,22 +339,24 @@ class _QuakeGauge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = _fillColor;
-    const barHeight = 18.0;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          'QUAKE',
-          style: TextStyle(
-            color: color.withValues(alpha: 0.95),
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.6,
+        SizedBox(
+          width: labelWidth,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: color.withValues(alpha: 0.95),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.6,
+            ),
           ),
         ),
         const SizedBox(width: 8),
         SizedBox(
-          width: 120,
+          width: barWidth,
           height: barHeight,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(barHeight / 2),

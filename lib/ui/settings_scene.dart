@@ -121,18 +121,30 @@ class SettingsScene extends StatelessWidget {
                         theme: theme,
                         title: '地震',
                         subtitle: 'ONで10回落とすたびに山が平らになる',
-                        child: SwitchListTile(
-                          contentPadding: EdgeInsets.zero,
+                        child: _ToggleRow(
+                          theme: theme,
                           value: settings.earthquake,
                           onChanged: settings.setEarthquake,
-                          title: Text(
-                            settings.earthquake ? 'ON' : 'OFF',
-                            style: TextStyle(
-                              color: theme.uiText,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                          thumbColor: WidgetStateProperty.all(theme.frameAccent),
+                        ),
+                      ),
+                      _SettingsCard(
+                        theme: theme,
+                        title: 'サンドワーム',
+                        subtitle: 'ONで20回落とすたびに砂壺をかき回す',
+                        child: _ToggleRow(
+                          theme: theme,
+                          value: settings.sandworm,
+                          onChanged: settings.setSandworm,
+                        ),
+                      ),
+                      _SettingsCard(
+                        theme: theme,
+                        title: '砂のキラキラ',
+                        subtitle: 'OFFで砂粒を単色表示にする',
+                        child: _ToggleRow(
+                          theme: theme,
+                          value: settings.sparkle,
+                          onChanged: settings.setSparkle,
                         ),
                       ),
                     ],
@@ -190,6 +202,39 @@ class _SettingsCard extends StatelessWidget {
           child,
         ],
       ),
+    );
+  }
+}
+
+class _ToggleRow extends StatelessWidget {
+  const _ToggleRow({
+    required this.theme,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final GameThemeConfig theme;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          value ? 'ON' : 'OFF',
+          style: TextStyle(
+            color: theme.uiText,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const Spacer(),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          thumbColor: WidgetStateProperty.all(theme.frameAccent),
+        ),
+      ],
     );
   }
 }

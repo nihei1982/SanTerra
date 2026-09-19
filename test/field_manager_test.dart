@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:santerra/game/sandworm.dart';
 import 'package:santerra/models/sand_kind.dart';
 import 'package:santerra/physics/field_manager.dart';
 import 'package:santerra/physics/sand_physics_engine.dart';
@@ -193,5 +196,68 @@ void main() {
     }
     expect(maxH - minH, lessThanOrEqualTo(1));
     expect(maxH, lessThan(before));
+  });
+
+  test('sandworm stir mixes layers vertically without losing grains', () {
+    for (var y = 4; y < 6; y++) {
+      for (var x = 0; x < 10; x++) {
+        engine.setCell(x, y, SandKind.blue.cellValue);
+      }
+    }
+    for (var y = 6; y < 8; y++) {
+      for (var x = 0; x < 10; x++) {
+        engine.setCell(x, y, SandKind.red.cellValue);
+      }
+    }
+    final before = engine.countSand();
+    final body = <(int, int)>[
+      for (var y = 3; y < 8; y++) (5, y),
+    ];
+    engine.stepWormStir(body, dirX: 0, dirY: 1);
+    expect(engine.countSand(), before);
+
+    var redRaised = false;
+    var blueLowered = false;
+    for (var y = 0; y < 8; y++) {
+      for (var x = 0; x < 10; x++) {
+        final v = engine.getCell(x, y);
+        if (v == SandKind.red.cellValue && y <= 5) {
+          redRaised = true;
+        }
+        if (v == SandKind.blue.cellValue && y >= 6) {
+          blueLowered = true;
+        }
+      }
+    }
+    expect(redRaised || blueLowered, isTrue);
+  });
+
+  test('sandworm stays inside the sand after emerging', () {
+    for (var y = 3; y < 8; y++) {
+      for (var x = 0; x < 10; x++) {
+        engine.setCell(x, y, SandKind.red.cellValue);
+      }
+    }
+    final rng = Random(3);
+    final worm = SandwormActor.spawn(engine, rng);
+    expect(
+      worm.head.dx < 1 ||
+          worm.head.dx > engine.cols - 1 ||
+          worm.head.dy >= engine.rows - 0.5,
+      isTrue,
+    );
+
+    for (var i = 0; i < 50; i++) {
+      worm.tick(1 / 60, engine, rng);
+    }
+    expect(worm.stage, SandwormStage.roam);
+    final hx = worm.head.dx.round().clamp(0, engine.cols - 1);
+    final hy = worm.head.dy.round().clamp(0, engine.rows - 1);
+    expect(hy, greaterThanOrEqualTo(engine.peakY(hx)));
+    expect(
+      engine.getCell(hx, hy) != 0 ||
+          engine.getCell(hx, min(engine.rows - 1, hy + 1)) != 0,
+      isTrue,
+    );
   });
 }

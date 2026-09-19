@@ -9,6 +9,8 @@ class SettingsManager extends ChangeNotifier {
     colorCount = (_prefs.getInt(_colorKey) ?? defaultColorCount).clamp(minColorCount, maxColorCount);
     sizeTypes = (_prefs.getInt(_sizeKey) ?? defaultSizeTypes).clamp(minSizeTypes, maxSizeTypes);
     earthquake = _prefs.getBool(_quakeKey) ?? false;
+    sandworm = _prefs.getBool(_wormKey) ?? false;
+    sparkle = _prefs.getBool(_sparkleKey) ?? true;
   }
 
   static const defaultColorCount = 4;
@@ -18,16 +20,21 @@ class SettingsManager extends ChangeNotifier {
   static const minSizeTypes = 1;
   static const maxSizeTypes = 4;
   static const quakeEveryDrops = 10;
+  static const wormEveryDrops = 20;
 
   static const _colorKey = 'santerra_color_count';
   static const _sizeKey = 'santerra_size_types';
   static const _quakeKey = 'santerra_earthquake';
+  static const _wormKey = 'santerra_sandworm';
+  static const _sparkleKey = 'santerra_sparkle';
 
   final SharedPreferences _prefs;
 
   late int colorCount;
   late int sizeTypes;
   late bool earthquake;
+  late bool sandworm;
+  late bool sparkle;
 
   List<SandKind> get activeColors => SandKind.palette(colorCount);
 
@@ -62,6 +69,24 @@ class SettingsManager extends ChangeNotifier {
     }
     earthquake = value;
     await _prefs.setBool(_quakeKey, earthquake);
+    notifyListeners();
+  }
+
+  Future<void> setSandworm(bool value) async {
+    if (sandworm == value) {
+      return;
+    }
+    sandworm = value;
+    await _prefs.setBool(_wormKey, sandworm);
+    notifyListeners();
+  }
+
+  Future<void> setSparkle(bool value) async {
+    if (sparkle == value) {
+      return;
+    }
+    sparkle = value;
+    await _prefs.setBool(_sparkleKey, sparkle);
     notifyListeners();
   }
 }

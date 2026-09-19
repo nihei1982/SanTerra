@@ -10,10 +10,11 @@ import '../physics/sand_physics_engine.dart';
 import '../theme/game_theme_config.dart';
 import '../theme/theme_manager.dart';
 import 'game_mode.dart';
+import 'sandworm.dart';
 import 'score_manager.dart';
 import 'settings_manager.dart';
 
-enum PlayPhase { idle, aiming, falling, settling, clearing, quaking, paused, gameOver }
+enum PlayPhase { idle, aiming, falling, settling, clearing, quaking, worming, paused, gameOver }
 
 /// Owns the run loop, input lock, chain reactions, pause/lifecycle, and scoring.
 class GameController extends ChangeNotifier with WidgetsBindingObserver {
@@ -68,6 +69,10 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
   bool _quakeArmed = false;
   double quakeT = 0;
   static const quakeDuration = 1.0;
+  bool _wormArmed = false;
+  double wormT = 0;
+  SandwormActor? worm;
+  bool _scrollHome = false;
 
   double get quakeGauge {
     if (!settings.earthquake) {
@@ -78,6 +83,17 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     }
     return (dropCount % SettingsManager.quakeEveryDrops) /
         SettingsManager.quakeEveryDrops;
+  }
+
+  double get wormGauge {
+    if (!settings.sandworm) {
+      return 0;
+    }
+    if (_wormArmed || phase == PlayPhase.worming) {
+      return 1;
+    }
+    return (dropCount % SettingsManager.wormEveryDrops) /
+        SettingsManager.wormEveryDrops;
   }
 
   Offset get shakeOffset {
@@ -100,7 +116,8 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
       phase == PlayPhase.falling ||
       phase == PlayPhase.settling ||
       phase == PlayPhase.clearing ||
-      phase == PlayPhase.quaking;
+      phase == PlayPhase.quaking ||
+      phase == PlayPhase.worming;
 
   bool get acceptsInput =>
       phase == PlayPhase.idle || phase == PlayPhase.aiming;
@@ -153,6 +170,10 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     dropCount = 0;
     _quakeArmed = false;
     quakeT = 0;
+    _wormArmed = false;
+    wormT = 0;
+    worm = null;
+    _scrollHome = false;
     nextPiece = _rollPiece();
     phase = PlayPhase.idle;
     unawaited(sound.playBgm(theme));
@@ -177,11 +198,16 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     if (phase == PlayPhase.quaking) {
       quakeT += dt;
     }
+    if (phase == PlayPhase.worming) {
+      wormT += dt;
+    }
 
-    _sparkleAcc += dt;
-    if (_sparkleAcc > 0.08) {
-      _sparkleAcc = 0;
-      sparkleSeed++;
+    if (settings.sparkle) {
+      _sparkleAcc += dt;
+      if (_sparkleAcc > 0.08) {
+        _sparkleAcc = 0;
+        sparkleSeed++;
+      }
     }
     if (_slideCooldown > 0) {
       _slideCooldown -= dt;
@@ -196,7 +222,9 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     final simulating = phase == PlayPhase.falling ||
         phase == PlayPhase.settling ||
         phase == PlayPhase.clearing ||
-        phase == PlayPhase.quaking;
+        phase == PlayPhase.quaking ||
+        phase == PlayPhase.worming ||
+        _scrollHome;
 
     switch (phase) {
       case PlayPhase.falling:
@@ -207,8 +235,13 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
         _tickClearing(dt);
       case PlayPhase.quaking:
         _tickQuake();
+      case PlayPhase.worming:
+        _tickWorm(dt);
       default:
         break;
+    }
+    if (_scrollHome) {
+      _tickScrollHome(dt);
     }
     if (simulating || banner != null) {
       notifyListeners();
@@ -272,6 +305,9 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     dropCount++;
     if (settings.earthquake && dropCount % SettingsManager.quakeEveryDrops == 0) {
       _quakeArmed = true;
+    }
+    if (settings.sandworm && dropCount % SettingsManager.wormEveryDrops == 0) {
+      _wormArmed = true;
     }
     nextPiece = _rollPiece();
     aimCellX = null;
@@ -394,6 +430,10 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
       _startQuake();
       return;
     }
+    if (_wormArmed) {
+      _startWorm();
+      return;
+    }
     _finishIdleOrFail();
   }
 
@@ -411,6 +451,77 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
     if (quakeT >= quakeDuration) {
       quakeT = 0;
       _onFullySettled();
+    }
+  }
+
+  void _startWorm() {
+    _wormArmed = false;
+    if (physics.countSand() == 0) {
+      _finishIdleOrFail();
+      return;
+    }
+    wormT = 0;
+    worm = SandwormActor.spawn(physics, _rng);
+    _scrollHome = false;
+    banner = 'SANDWORM';
+    bannerT = 1.2;
+    phase = PlayPhase.worming;
+    unawaited(sound.playSe(theme.seSandSlide));
+  }
+
+  void _tickWorm(double dt) {
+    final actor = worm;
+    if (actor == null) {
+      phase = PlayPhase.settling;
+      _stillFrames = 0;
+      return;
+    }
+    actor.tick(dt, physics, _rng);
+    final body = [
+      for (final p in actor.segments)
+        if (p.dy >= 0 && p.dy < physics.rows - 0.5)
+          (
+            p.dx.round().clamp(0, physics.cols - 1),
+            p.dy.round().clamp(0, physics.rows - 1),
+          ),
+    ];
+    if (body.isNotEmpty) {
+      physics.stepWormStir(
+        body,
+        dirX: actor.heading.dx.round(),
+        dirY: actor.heading.dy.round(),
+      );
+    }
+    if (isInfinity) {
+      if (actor.stage == SandwormStage.retreat) {
+        _scrollHome = true;
+      } else {
+        final target = (actor.head.dy - visibleRows * 0.42).clamp(0, maxScrollY);
+        scrollY += (target - scrollY) * 0.22;
+      }
+    }
+    if (actor.finished) {
+      worm = null;
+      wormT = 0;
+      _stillFrames = 0;
+      if (isInfinity && scrollY > 0.05) {
+        _scrollHome = true;
+      }
+      phase = PlayPhase.settling;
+    }
+  }
+
+  void _tickScrollHome(double dt) {
+    if (!isInfinity) {
+      _scrollHome = false;
+      scrollY = 0;
+      return;
+    }
+    const speed = 58.0;
+    scrollY = max(0, scrollY - speed * dt);
+    if (scrollY <= 0.08) {
+      scrollY = 0;
+      _scrollHome = false;
     }
   }
 

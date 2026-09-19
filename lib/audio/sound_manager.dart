@@ -44,10 +44,10 @@ class SoundManager extends ChangeNotifier {
     _bgm = AudioPlayer();
     _sePool = List.generate(4, (_) => AudioPlayer());
     await _bgm!.setReleaseMode(ReleaseMode.loop);
-    await _bgm!.setVolume(0.42);
+    await _bgm!.setVolume(0.62);
     for (final player in _sePool!) {
       await player.setReleaseMode(ReleaseMode.stop);
-      await player.setVolume(0.75);
+      await player.setVolume(0.32);
     }
     _playersReady = true;
   }
@@ -85,6 +85,7 @@ class SoundManager extends ChangeNotifier {
     try {
       await _ensurePlayers();
       await _bgm?.stop();
+      await _bgm?.setVolume(0.62);
       await _bgm?.play(AssetSource(source));
       _currentBgm = source;
       _bgmPaused = false;
@@ -143,6 +144,7 @@ class SoundManager extends ChangeNotifier {
       final player = pool[_seIndex];
       _seIndex = (_seIndex + 1) % pool.length;
       await player.stop();
+      await player.setVolume(0.32);
       await player.play(AssetSource(source));
     } catch (_) {}
   }

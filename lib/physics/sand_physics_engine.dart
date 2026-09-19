@@ -254,6 +254,128 @@ class SandPhysicsEngine {
     return moved;
   }
 
+  /// Mixes sand in an ellipse. [sandOnly] keeps empty cells so colors swap in place.
+  int stirRegion(
+    int cx,
+    int cy, {
+    int rx = 3,
+    int ry = 3,
+    bool sandOnly = false,
+  }) {
+    final ids = <int>[];
+    final rx2 = rx * rx;
+    final ry2 = ry * ry;
+    final limit = rx2 * ry2;
+    for (var dy = -ry; dy <= ry; dy++) {
+      for (var dx = -rx; dx <= rx; dx++) {
+        if (dx * dx * ry2 + dy * dy * rx2 > limit) {
+          continue;
+        }
+        final x = cx + dx;
+        final y = cy + dy;
+        if (!inBounds(x, y)) {
+          continue;
+        }
+        final i = index(x, y);
+        if (sandOnly && _cells[i] == 0) {
+          continue;
+        }
+        ids.add(i);
+      }
+    }
+    return _shuffleCells(ids);
+  }
+
+  /// Shuffles occupied grains along a column so layers mix vertically.
+  int mixColumn(int x, int cy, {int reach = 16}) {
+    if (x < 0 || x >= cols) {
+      return 0;
+    }
+    final ids = <int>[];
+    for (var y = cy - reach; y <= cy + reach; y++) {
+      if (y < 0 || y >= rows) {
+        continue;
+      }
+      final i = index(x, y);
+      if (_cells[i] != 0) {
+        ids.add(i);
+      }
+    }
+    return _shuffleCells(ids);
+  }
+
+  int _shuffleCells(List<int> ids, {int? maxSwaps}) {
+    if (ids.length < 2) {
+      return 0;
+    }
+    final budget = maxSwaps ?? max(2, ids.length ~/ 3);
+    var swaps = 0;
+    for (var n = 0; n < budget; n++) {
+      final i = _rng.nextInt(ids.length);
+      final j = _rng.nextInt(ids.length);
+      if (i == j) {
+        continue;
+      }
+      final a = ids[i];
+      final b = ids[j];
+      if (_cells[a] == _cells[b]) {
+        continue;
+      }
+      final tmp = _cells[a];
+      _cells[a] = _cells[b];
+      _cells[b] = tmp;
+      swaps++;
+    }
+    return swaps;
+  }
+
+  /// Plows a modest trail of sand sideways and up/down.
+  bool stepWormStir(Iterable<(int, int)> body, {required int dirX, required int dirY}) {
+    var moved = false;
+    final hx = dirX == 0 ? 0 : (dirX > 0 ? 1 : -1);
+    final hy = dirY == 0 ? 0 : (dirY > 0 ? 1 : -1);
+    var i = 0;
+    for (final cell in body) {
+      if (i != 0 && i.isOdd) {
+        i++;
+        continue;
+      }
+      final x = cell.$1;
+      final y = cell.$2;
+      if (stirRegion(x, y, rx: 2, ry: 5) > 0) {
+        moved = true;
+      }
+      if (mixColumn(x, y, reach: 8) > 0) {
+        moved = true;
+      }
+      final side = i.isEven ? 1 : -1;
+      if (_shove(x, y, side, 0) || _shove(x, y, 0, hy == 0 ? -1 : hy) || _shove(x, y, hx, 0)) {
+        moved = true;
+      }
+      i++;
+    }
+    if (stepGravity()) {
+      moved = true;
+    }
+    return moved;
+  }
+
+  bool _shove(int x, int y, int dx, int dy) {
+    if (dx == 0 && dy == 0) {
+      return false;
+    }
+    final nx = x + dx;
+    final ny = y + dy;
+    if (!inBounds(x, y) || !inBounds(nx, ny)) {
+      return false;
+    }
+    if (_cells[index(x, y)] == 0) {
+      return false;
+    }
+    _swap(x, y, nx, ny);
+    return true;
+  }
+
   /// Spreads peaks into valleys until the surface is as level as a discrete grid allows.
   bool stepFlatten({int moves = 16}) {
     var moved = stepGravity();

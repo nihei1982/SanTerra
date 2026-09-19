@@ -64,6 +64,13 @@ class FieldPainter extends CustomPainter {
 
     _paintKillLine(canvas, size, cellH, scroll);
 
+    controller.worm?.paint(
+      canvas,
+      cellW: cellW,
+      cellH: cellH,
+      scroll: scroll,
+    );
+
     if (controller.phase == PlayPhase.aiming && controller.aimCellX != null) {
       _paintGuide(canvas, size, cellW, cellH, scroll);
     }
@@ -145,6 +152,15 @@ class FieldPainter extends CustomPainter {
   ) {
     final kind = SandKind.fromCell(value);
     if (kind == null) {
+      return;
+    }
+    if (!controller.settings.sparkle) {
+      var color = kind.color;
+      if (clearing) {
+        final flash = 0.45 + 0.45 * sin(controller.clearT * 22);
+        color = Color.lerp(color, Colors.white, flash)!;
+      }
+      _fillCell(canvas, x, screenY, cellW, cellH, color);
       return;
     }
     final physics = controller.physics;
