@@ -9,6 +9,7 @@ import '../game/game_controller.dart';
 import '../game/game_mode.dart';
 import '../game/score_manager.dart';
 import '../game/settings_manager.dart';
+import '../l10n/app_strings_scope.dart';
 import '../theme/theme_manager.dart';
 import 'game_canvas_widget.dart';
 import 'overlays/game_dialogs.dart';
@@ -95,6 +96,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
     final theme = _controller.theme;
     final media = MediaQuery.of(context);
     final cancelY = media.size.height * 0.10;
+    final s = context.strings;
 
     return PopScope(
       canPop: _controller.phase == PlayPhase.gameOver,
@@ -137,7 +139,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                               ),
                             ),
                             Text(
-                              'SCORE',
+                              s.score,
                               style: TextStyle(
                                 color: theme.uiText.withValues(alpha: 0.75),
                                 fontSize: 11,
@@ -154,7 +156,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                               ),
                             ),
                             Text(
-                              'HI  ${widget.score.highScore}',
+                              s.hiLine(widget.score.highScore),
                               style: TextStyle(
                                 color: theme.uiText.withValues(alpha: 0.8),
                                 fontWeight: FontWeight.w700,
@@ -164,7 +166,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                             if (_controller.isInfinity &&
                                 _controller.physics.extraDepth > 0)
                               Text(
-                                'DEPTH +${_controller.physics.extraDepth}',
+                                s.depthLine(_controller.physics.extraDepth),
                                 style: TextStyle(
                                   color: theme.frameAccent,
                                   fontWeight: FontWeight.w800,
@@ -181,7 +183,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                           children: [
                             if (widget.settings.earthquake)
                               _EventGauge(
-                                label: 'QUAKE',
+                                label: s.quake,
                                 progress: _controller.quakeGauge,
                                 active: _controller.phase == PlayPhase.quaking,
                                 pulse: _controller.quakeT,
@@ -191,7 +193,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                               const SizedBox(height: 8),
                             if (widget.settings.sandworm)
                               _EventGauge(
-                                label: 'WORM',
+                                label: s.worm,
                                 progress: _controller.wormGauge,
                                 active: _controller.phase == PlayPhase.worming,
                                 pulse: _controller.wormT,
@@ -209,7 +211,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                           foregroundColor: theme.buttonText,
                         ),
                         icon: const Icon(Icons.pause),
-                        tooltip: 'PAUSE',
+                        tooltip: s.pause,
                       ),
                     ],
                   ),

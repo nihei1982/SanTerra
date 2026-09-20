@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../game/settings_manager.dart';
+import '../l10n/app_strings_scope.dart';
+import '../l10n/locale_manager.dart';
 import '../models/sand_kind.dart';
 import '../theme/game_theme_config.dart';
 import '../theme/theme_manager.dart';
@@ -14,6 +16,8 @@ class SettingsScene extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeManager>().config;
     final settings = context.watch<SettingsManager>();
+    final locale = context.watch<LocaleManager>();
+    final s = context.strings;
 
     return Scaffold(
       body: Stack(
@@ -33,7 +37,7 @@ class SettingsScene extends StatelessWidget {
                         icon: const Icon(Icons.arrow_back),
                       ),
                       Text(
-                        'SETTINGS',
+                        s.settings,
                         style: TextStyle(
                           color: theme.uiText,
                           fontSize: 22,
@@ -50,8 +54,38 @@ class SettingsScene extends StatelessWidget {
                     children: [
                       _SettingsCard(
                         theme: theme,
-                        title: '色数',
-                        subtitle: '3〜8色。デフォルトは4色',
+                        title: s.languageTitle,
+                        subtitle: s.languageSubtitle,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _LanguageChip(
+                                theme: theme,
+                                label: s.languageJapanese,
+                                selected: locale.language == AppLanguage.japanese,
+                                onTap: () async {
+                                  await locale.setLanguage(AppLanguage.japanese);
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _LanguageChip(
+                                theme: theme,
+                                label: s.languageEnglish,
+                                selected: locale.language == AppLanguage.english,
+                                onTap: () async {
+                                  await locale.setLanguage(AppLanguage.english);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _SettingsCard(
+                        theme: theme,
+                        title: s.colorCountTitle,
+                        subtitle: s.colorCountSubtitle,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -87,8 +121,8 @@ class SettingsScene extends StatelessWidget {
                       ),
                       _SettingsCard(
                         theme: theme,
-                        title: '砂サイズ',
-                        subtitle: '1〜4種類。少ないほど小さいサイズだけ',
+                        title: s.sandSizeTitle,
+                        subtitle: s.sandSizeSubtitle,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -116,31 +150,37 @@ class SettingsScene extends StatelessWidget {
                       ),
                       _SettingsCard(
                         theme: theme,
-                        title: '地震',
-                        subtitle: 'ONで10回落とすたびに山が平らになる',
+                        title: s.earthquakeTitle,
+                        subtitle: s.earthquakeSubtitle,
                         child: _ToggleRow(
                           theme: theme,
                           value: settings.earthquake,
+                          onLabel: s.on,
+                          offLabel: s.off,
                           onChanged: settings.setEarthquake,
                         ),
                       ),
                       _SettingsCard(
                         theme: theme,
-                        title: 'サンドワーム',
-                        subtitle: 'ONで20回落とすたびに砂壺をかき回す',
+                        title: s.sandwormTitle,
+                        subtitle: s.sandwormSubtitle,
                         child: _ToggleRow(
                           theme: theme,
                           value: settings.sandworm,
+                          onLabel: s.on,
+                          offLabel: s.off,
                           onChanged: settings.setSandworm,
                         ),
                       ),
                       _SettingsCard(
                         theme: theme,
-                        title: '砂のキラキラ',
-                        subtitle: 'OFFで砂粒を単色表示にする',
+                        title: s.sparkleTitle,
+                        subtitle: s.sparkleSubtitle,
                         child: _ToggleRow(
                           theme: theme,
                           value: settings.sparkle,
+                          onLabel: s.on,
+                          offLabel: s.off,
                           onChanged: settings.setSparkle,
                         ),
                       ),
@@ -151,6 +191,52 @@ class SettingsScene extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LanguageChip extends StatelessWidget {
+  const _LanguageChip({
+    required this.theme,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final GameThemeConfig theme;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: theme.uiPanel,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? theme.frameAccent : theme.uiPanelBorder,
+              width: selected ? 2.2 : 1,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: theme.uiText,
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -208,18 +294,22 @@ class _ToggleRow extends StatelessWidget {
     required this.theme,
     required this.value,
     required this.onChanged,
+    required this.onLabel,
+    required this.offLabel,
   });
 
   final GameThemeConfig theme;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final String onLabel;
+  final String offLabel;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Text(
-          value ? 'ON' : 'OFF',
+          value ? onLabel : offLabel,
           style: TextStyle(
             color: theme.uiText,
             fontWeight: FontWeight.w800,

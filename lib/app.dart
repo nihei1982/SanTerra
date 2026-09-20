@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'audio/sound_manager.dart';
 import 'game/score_manager.dart';
 import 'game/settings_manager.dart';
+import 'l10n/locale_manager.dart';
 import 'theme/theme_manager.dart';
 import 'ui/title_scene.dart';
 
@@ -16,12 +18,14 @@ class SanTerraApp extends StatefulWidget {
     required this.sound,
     required this.score,
     required this.settings,
+    required this.localeManager,
   });
 
   final ThemeManager themeManager;
   final SoundManager sound;
   final ScoreManager score;
   final SettingsManager settings;
+  final LocaleManager localeManager;
 
   @override
   State<SanTerraApp> createState() => _SanTerraAppState();
@@ -80,17 +84,37 @@ class _SanTerraAppState extends State<SanTerraApp> with WidgetsBindingObserver {
         ChangeNotifierProvider<SoundManager>.value(value: widget.sound),
         ChangeNotifierProvider<ScoreManager>.value(value: widget.score),
         ChangeNotifierProvider<SettingsManager>.value(value: widget.settings),
+        ChangeNotifierProvider<LocaleManager>.value(value: widget.localeManager),
       ],
       child: TickerMode(
         enabled: _foreground,
         child: ListenableBuilder(
-          listenable: widget.themeManager,
+          listenable: Listenable.merge([
+            widget.themeManager,
+            widget.localeManager,
+          ]),
           builder: (context, _) {
             final theme = widget.themeManager.config;
             return MaterialApp(
               navigatorKey: _navKey,
               title: 'SanTerra',
               debugShowCheckedModeBanner: false,
+              locale: widget.localeManager.locale,
+              localeListResolutionCallback: (locales, supported) {
+                return widget.localeManager.locale;
+              },
+              localeResolutionCallback: (locale, supported) {
+                return widget.localeManager.locale;
+              },
+              supportedLocales: const [
+                Locale('ja'),
+                Locale('en'),
+              ],
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
               theme: ThemeData(
                 colorScheme: ColorScheme.fromSeed(
                   seedColor: theme.buttonFill,

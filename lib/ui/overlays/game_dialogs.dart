@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_strings_scope.dart';
 import '../../theme/game_theme_config.dart';
 
 class PauseOverlay extends StatelessWidget {
@@ -20,15 +21,16 @@ class PauseOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
     return _DialogCard(
       theme: theme,
-      title: 'PAUSE',
+      title: s.pause,
       children: [
-        _DialogButton(theme: theme, label: 'RESUME', onTap: onResume),
-        _DialogButton(theme: theme, label: 'RESTART', onTap: onRestart),
+        _DialogButton(theme: theme, label: s.resume, onTap: onResume),
+        _DialogButton(theme: theme, label: s.restart, onTap: onRestart),
         if (onSettings != null)
-          _DialogButton(theme: theme, label: 'SETTINGS', onTap: onSettings!),
-        _DialogButton(theme: theme, label: 'TITLE', outlined: true, onTap: onTitle),
+          _DialogButton(theme: theme, label: s.settings, onTap: onSettings!),
+        _DialogButton(theme: theme, label: s.title, outlined: true, onTap: onTitle),
       ],
     );
   }
@@ -52,12 +54,13 @@ class GameOverOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
     return _DialogCard(
       theme: theme,
-      title: 'GAME OVER',
+      title: s.gameOver,
       children: [
         Text(
-          'SCORE',
+          s.score,
           style: TextStyle(color: theme.uiMuted, letterSpacing: 2, fontSize: 12),
         ),
         Text(
@@ -70,7 +73,7 @@ class GameOverOverlay extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          'HIGH SCORE  $highScore',
+          s.highScoreOnly(highScore),
           style: TextStyle(
             color: theme.uiMuted,
             fontWeight: FontWeight.w700,
@@ -78,8 +81,8 @@ class GameOverOverlay extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        _DialogButton(theme: theme, label: 'RETRY', onTap: onRetry),
-        _DialogButton(theme: theme, label: 'TITLE', outlined: true, onTap: onTitle),
+        _DialogButton(theme: theme, label: s.retry, onTap: onRetry),
+        _DialogButton(theme: theme, label: s.title, outlined: true, onTap: onTitle),
       ],
     );
   }

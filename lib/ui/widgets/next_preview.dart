@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_strings_scope.dart';
 import '../../models/sand_model.dart';
 import '../../theme/game_theme_config.dart';
 
@@ -11,6 +12,7 @@ class NextPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
     return Container(
       width: 92,
       height: 72,
@@ -24,7 +26,7 @@ class NextPreview extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 4),
             child: Text(
-              'NEXT',
+              s.next,
               style: TextStyle(
                 color: theme.uiMuted,
                 fontSize: 10,

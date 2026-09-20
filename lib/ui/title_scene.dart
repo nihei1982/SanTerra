@@ -7,6 +7,7 @@ import '../audio/sound_manager.dart';
 import '../game/game_mode.dart';
 import '../game/score_manager.dart';
 import '../game/settings_manager.dart';
+import '../l10n/app_strings_scope.dart';
 import '../theme/game_theme_config.dart';
 import '../theme/theme_manager.dart';
 import 'game_scene.dart';
@@ -58,6 +59,7 @@ class _TitleSceneState extends State<TitleScene> {
     final sound = context.watch<SoundManager>();
     final score = context.watch<ScoreManager>();
     final theme = themeManager.config;
+    final s = context.strings;
 
     return Scaffold(
       body: Stack(
@@ -84,7 +86,7 @@ class _TitleSceneState extends State<TitleScene> {
                         backgroundColor: theme.uiPanel,
                       ),
                       icon: const Icon(Icons.settings),
-                      tooltip: 'SETTINGS',
+                      tooltip: s.settings,
                     ),
                   ),
                   Align(
@@ -101,7 +103,7 @@ class _TitleSceneState extends State<TitleScene> {
                         ),
                         const SizedBox(height: 6),
                         _Headline(
-                          '砂の物理パズル',
+                          s.tagline,
                           theme: theme,
                           fontSize: 16,
                           letterSpacing: 4,
@@ -109,7 +111,7 @@ class _TitleSceneState extends State<TitleScene> {
                         ),
                         const SizedBox(height: 10),
                         _Headline(
-                          '${score.mode.label}  HIGH SCORE  ${score.highScore}',
+                          s.highScoreLine(score.mode.label, score.highScore),
                           theme: theme,
                           fontSize: 14,
                           letterSpacing: 0.6,
@@ -148,7 +150,7 @@ class _TitleSceneState extends State<TitleScene> {
                             letterSpacing: 3,
                           ),
                         ),
-                        child: const Text('START'),
+                        child: Text(s.start),
                       ),
                     ),
                   ),
@@ -160,7 +162,7 @@ class _TitleSceneState extends State<TitleScene> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: _Headline(
-                            'MODE',
+                            s.mode,
                             theme: theme,
                             fontSize: 12,
                             letterSpacing: 2,
@@ -175,6 +177,7 @@ class _TitleSceneState extends State<TitleScene> {
                                 mode: GameMode.normal,
                                 selected: score.mode == GameMode.normal,
                                 theme: theme,
+                                description: s.modeDescription(GameMode.normal),
                                 onTap: () => score.setMode(GameMode.normal),
                               ),
                             ),
@@ -184,6 +187,7 @@ class _TitleSceneState extends State<TitleScene> {
                                 mode: GameMode.infinity,
                                 selected: score.mode == GameMode.infinity,
                                 theme: theme,
+                                description: s.modeDescription(GameMode.infinity),
                                 onTap: () => score.setMode(GameMode.infinity),
                               ),
                             ),
@@ -193,7 +197,7 @@ class _TitleSceneState extends State<TitleScene> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: _Headline(
-                            'THEME',
+                            s.theme,
                             theme: theme,
                             fontSize: 12,
                             letterSpacing: 2,
@@ -207,6 +211,8 @@ class _TitleSceneState extends State<TitleScene> {
                               child: _ThemeCard(
                                 config: GameThemeConfig.atelier,
                                 selected: theme.id == GameThemeId.atelier,
+                                name: s.themeName(GameThemeId.atelier),
+                                tagline: s.themeTagline(GameThemeId.atelier),
                                 onTap: () async {
                                   await themeManager.setTheme(GameThemeId.atelier);
                                   if (context.mounted) {
@@ -220,6 +226,8 @@ class _TitleSceneState extends State<TitleScene> {
                               child: _ThemeCard(
                                 config: GameThemeConfig.resort,
                                 selected: theme.id == GameThemeId.resort,
+                                name: s.themeName(GameThemeId.resort),
+                                tagline: s.themeTagline(GameThemeId.resort),
                                 onTap: () async {
                                   await themeManager.setTheme(GameThemeId.resort);
                                   if (context.mounted) {
@@ -232,7 +240,7 @@ class _TitleSceneState extends State<TitleScene> {
                         ),
                         const SizedBox(height: 8),
                         _SoundToggle(
-                          label: 'BGM',
+                          label: s.bgm,
                           value: sound.bgmOn,
                           theme: theme,
                           onChanged: (v) async {
@@ -243,7 +251,7 @@ class _TitleSceneState extends State<TitleScene> {
                           },
                         ),
                         _SoundToggle(
-                          label: 'SE',
+                          label: s.se,
                           value: sound.seOn,
                           theme: theme,
                           onChanged: sound.setSeOn,
@@ -316,12 +324,14 @@ class _ModeCard extends StatelessWidget {
     required this.mode,
     required this.selected,
     required this.theme,
+    required this.description,
     required this.onTap,
   });
 
   final GameMode mode;
   final bool selected;
   final GameThemeConfig theme;
+  final String description;
   final VoidCallback onTap;
 
   @override
@@ -356,7 +366,7 @@ class _ModeCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                mode.description,
+                description,
                 style: TextStyle(color: theme.uiMuted, fontSize: 11),
               ),
             ],
@@ -371,11 +381,15 @@ class _ThemeCard extends StatelessWidget {
   const _ThemeCard({
     required this.config,
     required this.selected,
+    required this.name,
+    required this.tagline,
     required this.onTap,
   });
 
   final GameThemeConfig config;
   final bool selected;
+  final String name;
+  final String tagline;
   final VoidCallback onTap;
 
   @override
@@ -408,7 +422,7 @@ class _ThemeCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                config.displayName,
+                name,
                 style: TextStyle(
                   color: config.uiText,
                   fontWeight: FontWeight.w800,
@@ -416,7 +430,7 @@ class _ThemeCard extends StatelessWidget {
                 ),
               ),
               Text(
-                config.tagline,
+                tagline,
                 style: TextStyle(color: config.uiMuted, fontSize: 11),
               ),
             ],
