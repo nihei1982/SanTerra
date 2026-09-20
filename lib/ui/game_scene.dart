@@ -96,16 +96,24 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
     final media = MediaQuery.of(context);
     final cancelY = media.size.height * 0.10;
 
-    return Scaffold(
+    return PopScope(
+      canPop: _controller.phase == PlayPhase.gameOver,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          return;
+        }
+        if (_controller.phase == PlayPhase.gameOver) {
+          return;
+        }
+        _controller.pauseGame();
+      },
+      child: Scaffold(
       body: Transform.translate(
         offset: _controller.shakeOffset,
         child: Stack(
         fit: StackFit.expand,
         children: [
-          CustomPaint(
-            painter: WorldBackgroundPainter(theme, _worldImage),
-            child: const SizedBox.expand(),
-          ),
+          WorldBackdrop(theme: theme, worldImage: _worldImage),
           SafeArea(
             child: Column(
               children: [
@@ -122,7 +130,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                             Text(
                               _controller.mode.label,
                               style: TextStyle(
-                                color: theme.buttonText.withValues(alpha: 0.75),
+                                color: theme.uiText.withValues(alpha: 0.75),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.6,
@@ -131,7 +139,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                             Text(
                               'SCORE',
                               style: TextStyle(
-                                color: theme.buttonText.withValues(alpha: 0.75),
+                                color: theme.uiText.withValues(alpha: 0.75),
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1.6,
@@ -140,7 +148,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                             Text(
                               '${widget.score.current}',
                               style: TextStyle(
-                                color: theme.buttonText,
+                                color: theme.uiText,
                                 fontSize: 28,
                                 fontWeight: FontWeight.w900,
                               ),
@@ -148,7 +156,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
                             Text(
                               'HI  ${widget.score.highScore}',
                               style: TextStyle(
-                                color: theme.buttonText.withValues(alpha: 0.8),
+                                color: theme.uiText.withValues(alpha: 0.8),
                                 fontWeight: FontWeight.w700,
                                 fontSize: 12,
                               ),
@@ -303,6 +311,7 @@ class _GameSceneState extends State<GameScene> with SingleTickerProviderStateMix
         ],
         ),
       ),
+    ),
     );
   }
 }

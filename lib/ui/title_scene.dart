@@ -63,10 +63,7 @@ class _TitleSceneState extends State<TitleScene> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          CustomPaint(
-            painter: WorldBackgroundPainter(theme, _worldImage),
-            child: const SizedBox.expand(),
-          ),
+          WorldBackdrop(theme: theme, worldImage: _worldImage),
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -82,7 +79,10 @@ class _TitleSceneState extends State<TitleScene> {
                           ),
                         );
                       },
-                      color: theme.buttonText,
+                      color: theme.uiText,
+                      style: IconButton.styleFrom(
+                        backgroundColor: theme.uiPanel,
+                      ),
                       icon: const Icon(Icons.settings),
                       tooltip: 'SETTINGS',
                     ),
@@ -93,35 +93,27 @@ class _TitleSceneState extends State<TitleScene> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const SizedBox(height: 12),
-                        Text(
+                        _Headline(
                           'SanTerra',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: theme.buttonText,
-                            fontSize: 48,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            shadows: const [
-                              Shadow(color: Colors.black54, blurRadius: 12, offset: Offset(0, 4)),
-                            ],
-                          ),
+                          theme: theme,
+                          fontSize: 48,
+                          letterSpacing: 1.5,
                         ),
                         const SizedBox(height: 6),
-                        Text(
+                        _Headline(
                           '砂の物理パズル',
-                          style: TextStyle(
-                            color: theme.buttonText.withValues(alpha: 0.9),
-                            fontSize: 16,
-                            letterSpacing: 4,
-                          ),
+                          theme: theme,
+                          fontSize: 16,
+                          letterSpacing: 4,
+                          weight: FontWeight.w700,
                         ),
                         const SizedBox(height: 10),
-                        Text(
+                        _Headline(
                           '${score.mode.label}  HIGH SCORE  ${score.highScore}',
-                          style: TextStyle(
-                            color: theme.buttonText.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w700,
-                          ),
+                          theme: theme,
+                          fontSize: 14,
+                          letterSpacing: 0.6,
+                          weight: FontWeight.w700,
                         ),
                       ],
                     ),
@@ -167,14 +159,12 @@ class _TitleSceneState extends State<TitleScene> {
                       children: [
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Text(
+                          child: _Headline(
                             'MODE',
-                            style: TextStyle(
-                              color: theme.buttonText.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 2,
-                              fontSize: 12,
-                            ),
+                            theme: theme,
+                            fontSize: 12,
+                            letterSpacing: 2,
+                            weight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -202,14 +192,12 @@ class _TitleSceneState extends State<TitleScene> {
                         const SizedBox(height: 14),
                         Align(
                           alignment: Alignment.centerLeft,
-                          child: Text(
+                          child: _Headline(
                             'THEME',
-                            style: TextStyle(
-                              color: theme.buttonText.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 2,
-                              fontSize: 12,
-                            ),
+                            theme: theme,
+                            fontSize: 12,
+                            letterSpacing: 2,
+                            weight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -269,6 +257,56 @@ class _TitleSceneState extends State<TitleScene> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _Headline extends StatelessWidget {
+  const _Headline(
+    this.text, {
+    required this.theme,
+    required this.fontSize,
+    this.letterSpacing = 0,
+    this.weight = FontWeight.w900,
+  });
+
+  final String text;
+  final GameThemeConfig theme;
+  final double fontSize;
+  final double letterSpacing;
+  final FontWeight weight;
+
+  @override
+  Widget build(BuildContext context) {
+    final fill = theme.uiText;
+    final outline = theme.id == GameThemeId.atelier
+        ? const Color(0xF2FFFFFF)
+        : const Color(0xE6081228);
+    final style = TextStyle(
+      fontSize: fontSize,
+      fontWeight: weight,
+      letterSpacing: letterSpacing,
+    );
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: style.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = fontSize > 30 ? 8 : 4.5
+              ..strokeJoin = StrokeJoin.round
+              ..color = outline,
+          ),
+        ),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: style.copyWith(color: fill),
+        ),
+      ],
     );
   }
 }
@@ -404,21 +442,24 @@ class _SoundToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      contentPadding: EdgeInsets.zero,
-      dense: true,
-      visualDensity: VisualDensity.compact,
-      title: Text(
-        label,
-        style: TextStyle(
-          color: theme.buttonText,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 1.5,
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: theme.uiText,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+            ),
+          ),
         ),
-      ),
-      value: value,
-      onChanged: onChanged,
-      thumbColor: WidgetStateProperty.all(theme.frameAccent),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          thumbColor: WidgetStateProperty.all(theme.frameAccent),
+        ),
+      ],
     );
   }
 }

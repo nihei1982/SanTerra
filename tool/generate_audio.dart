@@ -49,18 +49,19 @@ List<double> _loopingBgm({required bool atelier}) {
   const sr = 22050;
   const seconds = 8.0;
   final n = (sr * seconds).round();
-  final root = atelier ? 196.0 : 261.63;
+  final root = atelier ? 293.66 : 146.83;
   final scale = atelier
-      ? const [0, 3, 5, 7, 10]
-      : const [0, 2, 4, 7, 9];
+      ? const [0, 2, 4, 7, 9]
+      : const [0, 3, 7, 10, 12];
   return List<double>.generate(n, (i) {
     final t = i / sr;
-    final step = scale[(i ~/ (sr * 0.5)) % scale.length];
+    final step = scale[(i ~/ (sr * (atelier ? 0.5 : 0.8))) % scale.length];
     final freq = root * pow(2, step / 12);
-    final pad = sin(2 * pi * freq * 0.5 * t) * 0.08;
-    final melody = sin(2 * pi * freq * t) * 0.12;
+    final pad = sin(2 * pi * freq * 0.5 * t) * (atelier ? 0.08 : 0.10);
+    final melody = sin(2 * pi * freq * t) * (atelier ? 0.12 : 0.07);
+    final shimmer = sin(2 * pi * freq * 2 * t) * (atelier ? 0.02 : 0.03);
     final env = 0.65 + 0.35 * sin(2 * pi * t / seconds);
-    return (pad + melody) * env;
+    return (pad + melody + shimmer) * env;
   });
 }
 

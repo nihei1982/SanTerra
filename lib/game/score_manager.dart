@@ -54,9 +54,11 @@ class ScoreManager extends ChangeNotifier {
     return eliminatedGrains * chainIndex;
   }
 
-  void resetCurrent() {
+  void resetCurrent({bool notify = true}) {
     current = 0;
-    notifyListeners();
+    if (notify) {
+      notifyListeners();
+    }
   }
 
   void add(int points) {

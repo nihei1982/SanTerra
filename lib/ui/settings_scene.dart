@@ -19,10 +19,7 @@ class SettingsScene extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          CustomPaint(
-            painter: WorldBackgroundPainter(theme),
-            child: const SizedBox.expand(),
-          ),
+          WorldBackdrop(theme: theme),
           SafeArea(
             child: Column(
               children: [
@@ -32,13 +29,13 @@ class SettingsScene extends StatelessWidget {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        color: theme.buttonText,
+                        color: theme.uiText,
                         icon: const Icon(Icons.arrow_back),
                       ),
                       Text(
                         'SETTINGS',
                         style: TextStyle(
-                          color: theme.buttonText,
+                          color: theme.uiText,
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,

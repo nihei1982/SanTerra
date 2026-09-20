@@ -11,6 +11,8 @@ class SoundManager extends ChangeNotifier {
 
   static const _bgmKey = 'santerra_bgm_on';
   static const _seKey = 'santerra_se_on';
+  static const _bgmVolume = 0.62;
+  static const _seVolume = 0.22;
 
   final SharedPreferences _prefs;
   final bool enableAudio;
@@ -24,9 +26,19 @@ class SoundManager extends ChangeNotifier {
   String? _currentBgm;
   bool _bgmPaused = false;
   bool _playersReady = false;
+  bool _suspended = false;
+  Future<void>? _ensurePlayersFuture;
+
+  static final AudioContext _mixContext = AudioContextConfig(
+    focus: AudioContextConfigFocus.mixWithOthers,
+  ).build();
 
   bool get bgmOn => _bgmOn;
   bool get seOn => _seOn;
+
+  void setSuspended(bool value) {
+    _suspended = value;
+  }
 
   Future<void> init() async {
     _bgmOn = _prefs.getBool(_bgmKey) ?? true;
@@ -41,14 +53,27 @@ class SoundManager extends ChangeNotifier {
     if (!enableAudio || _playersReady) {
       return;
     }
-    _bgm = AudioPlayer();
-    _sePool = List.generate(4, (_) => AudioPlayer());
-    await _bgm!.setReleaseMode(ReleaseMode.loop);
-    await _bgm!.setVolume(0.62);
-    for (final player in _sePool!) {
-      await player.setReleaseMode(ReleaseMode.stop);
-      await player.setVolume(0.32);
+    _ensurePlayersFuture ??= _createPlayers();
+    await _ensurePlayersFuture;
+  }
+
+  Future<void> _createPlayers() async {
+    await AudioPlayer.global.setAudioContext(_mixContext);
+    final bgm = AudioPlayer();
+    await bgm.setAudioContext(_mixContext);
+    await bgm.setReleaseMode(ReleaseMode.loop);
+    await bgm.setVolume(_bgmVolume);
+    _bgm = bgm;
+
+    final pool = <AudioPlayer>[];
+    for (var i = 0; i < 4; i++) {
+      final se = AudioPlayer();
+      await se.setAudioContext(_mixContext);
+      await se.setReleaseMode(ReleaseMode.stop);
+      await se.setVolume(_seVolume);
+      pool.add(se);
     }
+    _sePool = pool;
     _playersReady = true;
   }
 
@@ -70,7 +95,7 @@ class SoundManager extends ChangeNotifier {
   }
 
   Future<void> playBgm(GameThemeConfig theme) async {
-    if (!enableAudio) {
+    if (!enableAudio || _suspended) {
       return;
     }
     final source = AssetGuard.playableAudioSource(theme.bgmAsset);
@@ -84,8 +109,9 @@ class SoundManager extends ChangeNotifier {
     }
     try {
       await _ensurePlayers();
+      await _bgm?.setAudioContext(_mixContext);
       await _bgm?.stop();
-      await _bgm?.setVolume(0.62);
+      await _bgm?.setVolume(_bgmVolume);
       await _bgm?.play(AssetSource(source));
       _currentBgm = source;
       _bgmPaused = false;
@@ -99,11 +125,11 @@ class SoundManager extends ChangeNotifier {
       return;
     }
     try {
-      await _bgm?.pause();
       _bgmPaused = true;
+      await _bgm?.stop();
       if (_sePool != null) {
         for (final player in _sePool!) {
-          await player.pause();
+          await player.stop();
         }
       }
     } catch (_) {}
@@ -128,7 +154,7 @@ class SoundManager extends ChangeNotifier {
   }
 
   Future<void> playSe(String? path) async {
-    if (!enableAudio) {
+    if (!enableAudio || _suspended) {
       return;
     }
     final source = AssetGuard.playableAudioSource(path);
@@ -144,7 +170,8 @@ class SoundManager extends ChangeNotifier {
       final player = pool[_seIndex];
       _seIndex = (_seIndex + 1) % pool.length;
       await player.stop();
-      await player.setVolume(0.32);
+      await player.setAudioContext(_mixContext);
+      await player.setVolume(_seVolume);
       await player.play(AssetSource(source));
     } catch (_) {}
   }
@@ -159,5 +186,7 @@ class SoundManager extends ChangeNotifier {
     _bgm = null;
     _sePool = null;
     _playersReady = false;
+    _suspended = false;
+    _ensurePlayersFuture = null;
   }
 }

@@ -156,7 +156,9 @@ class GameController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> startSession() async {
-    score.resetCurrent();
+    // TitleScene still watches ScoreManager under the route. Notifying from
+    // GameScene.initState would mark it dirty during Navigator's build.
+    score.resetCurrent(notify: false);
     physics.clear();
     clearingCells.clear();
     falling = null;

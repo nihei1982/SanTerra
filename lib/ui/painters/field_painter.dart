@@ -102,6 +102,8 @@ class FieldPainter extends CustomPainter {
 
   void _paintBackdrop(Canvas canvas, Size size, GameThemeConfig theme) {
     final rect = Offset.zero & size;
+    const wash = 0.42;
+    canvas.saveLayer(rect, Paint()..color = const Color.fromRGBO(255, 255, 255, wash));
     if (canvasImage != null) {
       paintImage(
         canvas: canvas,
@@ -138,6 +140,7 @@ class FieldPainter extends CustomPainter {
         Paint()..color = theme.paperLine.withValues(alpha: 0.18),
       );
     }
+    canvas.restore();
   }
 
   void _paintGrain(
