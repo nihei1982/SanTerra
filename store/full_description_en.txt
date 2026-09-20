@@ -1,0 +1,59 @@
+SanTerra is a relaxing 2D sand physics puzzle. Aim, drop colorful sand into a terrarium-like pot, and clear when the same color bridges left-to-right or top-to-bottom. Chains raise your score. Build calmly, collapse boldly, and play at your own pace.
+
+WHO IT'S FOR
+Fans of falling puzzles and physics toys; short breaks or long sand-art sessions; players who enjoy themes, BGM, and adjustable settings.
+
+HOW TO PLAY
+1) Choose MODE (NORMAL / INFINITY) and THEME, then START.
+2) Touch and drag to aim; release to drop.
+3) Lift near the top ~10% of the screen to cancel the drop.
+4) Same colors connect in 8 directions; clear when a group bridges the pot.
+5) After clears, sand settles - if it reconnects, a CHAIN begins.
+6) Pause for Resume, Restart, Settings, or Title. Check NEXT for the next piece.
+
+Tip for beginners: start in NORMAL with 4 colors, all sizes, and effects OFF. Then try more colors, sizes, Earthquake, and Sandworm.
+
+SCORING
+Points = grains cleared x chain number (x1, then x2, and so on). Chains show a banner and SE. Cleared sand flashes with +points. High scores save per mode across launches. Bigger clears and longer chains score more - read the next settle.
+
+MODES
+NORMAL - Reach the top for GAME OVER. Watch the red dashed danger line, clear to survive, chase SCORE. Use RETRY for quick score runs.
+INFINITY - The pot deepens forever. Scroll to explore. No top-out game over. Check DEPTH on the HUD. Aiming helps return you to the rim after scrolling. Ideal for long terrarium-style play.
+
+THEMES
+Indoor Atelier: sunlit morning room, bright paper-and-wood warmth.
+Night Desert: moonlit dunes and stars, dark canvas, glowing sand.
+Themes change background, frame, UI colors, and BGM. Toggle BGM / SE on the title screen (saved on device).
+
+SETTINGS (saved on device)
+- Language: Japanese / English. First launch follows the OS (Japanese if system language is Japanese; otherwise English). Your choice is remembered.
+- Colors: 3-8 (default 4).
+- Sand size: 1-4 types (default 4) - S / M / L / XL (fewer = only smaller pieces).
+- Earthquake: ON flattens the pile about every 10 drops (QUAKE gauge).
+- Sandworm: ON stirs the pot about every 20 drops (WORM gauge).
+- Sand sparkle: ON for shimmer; OFF for solid colors.
+Size guide: S ~48 / M ~100 / L ~168 / XL ~260 grains. Colors: red, blue, green, yellow, orange, purple, cyan, pink (up to your count).
+
+CONTROLS & SYSTEM
+No new drops during falling, settling, clearing, quake, or worm. Android Back pauses in play; on game over it returns toward title. Backgrounding pauses play and audio. Pause: RESUME / RESTART / SETTINGS / TITLE. Game Over shows SCORE and HI, then RETRY or TITLE.
+
+AUDIO & LANGUAGE
+Looping theme BGM plus landing, slide, clear, and chain SE. Mixes with other apps. Pause/background stop sound; title return resumes BGM. JA/EN localize settings, mode blurbs, theme names, and tagline; some labels stay English (START, SCORE, PAUSE, etc.).
+
+DATA
+Language, colors, sizes, effects, BGM/SE, theme, mode, and high scores store on device. No account required.
+
+WAYS TO PLAY
+Fewer colors for readable chains; more colors/sizes for sand art; effects ON for chaos; INFINITY depth runs; swap themes for a new mood; sparkle OFF for crisp long sessions; short NORMAL score attacks.
+
+DESIGN
+Sand is many grains and one mass - it drops, flows, bridges, clears, and settles again. That feel is SanTerra's core. Aiming and chain satisfaction matter more than spectacle. Growing, collapsing, and looking again - like tending a terrarium - is part of the fun.
+
+No forced ads. No paywall on core modes. NORMAL, INFINITY, colors, sizes, and optional effects are ready after install. Play offline (aside from normal store/OS behavior).
+
+Falling sand, connecting colors, a quiet pot of strata. Welcome to SanTerra.
+
+TIP
+Watch NEXT, protect space under the danger line in NORMAL, and in INFINITY scroll your strata - then aim again at the rim.
+
+* Features and content may change without notice.

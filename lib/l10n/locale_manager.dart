@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,17 +14,35 @@ enum AppLanguage {
 
   Locale get locale => Locale(code);
 
-  static AppLanguage fromCode(String? code) {
+  static AppLanguage fromCode(String code) {
     if (code == 'en') {
       return AppLanguage.english;
     }
     return AppLanguage.japanese;
   }
+
+  /// First-launch default: Japanese only when the OS language is Japanese.
+  static AppLanguage fromDeviceLocale(Locale locale) {
+    if (locale.languageCode == 'ja') {
+      return AppLanguage.japanese;
+    }
+    return AppLanguage.english;
+  }
 }
 
 class LocaleManager extends ChangeNotifier {
-  LocaleManager(this._prefs) {
-    _language = AppLanguage.fromCode(_prefs.getString(_key));
+  LocaleManager(
+    this._prefs, {
+    Locale? deviceLocale,
+  }) {
+    final saved = _prefs.getString(_key);
+    if (saved != null) {
+      _language = AppLanguage.fromCode(saved);
+    } else {
+      _language = AppLanguage.fromDeviceLocale(
+        deviceLocale ?? PlatformDispatcher.instance.locale,
+      );
+    }
   }
 
   static const _key = 'santerra_language';

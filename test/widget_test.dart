@@ -17,6 +17,7 @@ Future<
     })> _pumpApp(
   WidgetTester tester, {
   Map<String, Object> prefs = const {},
+  Locale deviceLocale = const Locale('ja'),
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
   await AssetGuard.load();
@@ -27,7 +28,7 @@ Future<
   final score = ScoreManager(store);
   await score.load();
   final settings = SettingsManager(store);
-  final locale = LocaleManager(store);
+  final locale = LocaleManager(store, deviceLocale: deviceLocale);
   await tester.pumpWidget(
     SanTerraApp(
       themeManager: theme,
@@ -55,6 +56,20 @@ void main() {
     expect(find.byTooltip('SETTINGS'), findsOneWidget);
 
     await boot.sound.disposePlayers();
+  });
+
+  testWidgets('first launch follows OS language', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    final ja = LocaleManager(prefs, deviceLocale: const Locale('ja', 'JP'));
+    expect(ja.language, AppLanguage.japanese);
+
+    final en = LocaleManager(prefs, deviceLocale: const Locale('en', 'US'));
+    expect(en.language, AppLanguage.english);
+
+    final fr = LocaleManager(prefs, deviceLocale: const Locale('fr'));
+    expect(fr.language, AppLanguage.english);
   });
 
   testWidgets('settings language switch updates theme names', (tester) async {
